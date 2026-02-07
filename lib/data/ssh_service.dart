@@ -10,7 +10,7 @@ class SshService {
     final ip = prefs.getString('ip') ?? '192.168.0.101';
     final port = int.parse(prefs.getString('port') ?? '22');
     final user = prefs.getString('username') ?? 'lg';
-    final pass = prefs.getString('password') ?? 'lqgalaxy';
+    final pass = prefs.getString('password') ?? 'lg';
 
     try {
       final socket = await SSHSocket.connect(

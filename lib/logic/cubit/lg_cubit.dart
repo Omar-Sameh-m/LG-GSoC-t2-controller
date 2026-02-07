@@ -62,6 +62,25 @@ class LgCubit extends Cubit<LgState> {
     emit(LgActionSuccess(message: "Logos Cleaned"));
   }
 
+  Future<void> sendLogoFromUrl(String url) async {
+    String logoKml = KMLMaker.screenOverlayImage(url, 0.5);
+    await _sshService.sendKML(logoKml, "logo.kml");
+    emit(LgActionSuccess(message: "Custom Logo Sent!"));
+  }
 
+  Future<void> sendCustomKml(String kmlText, String filename) async {
+    await _sshService.sendKML(kmlText, filename);
+    emit(LgActionSuccess(message: "Custom KML Sent as $filename"));
+  }
 
+  Future<void> flyToCoordinates(
+    double lat,
+    double lon,
+    double altitude,
+    double heading,
+    double tilt,
+  ) async {
+    await _sshService.flyTo(lat, lon, altitude, heading, tilt);
+    emit(LgActionSuccess(message: "Flying to ($lat, $lon)"));
+  }
 }
