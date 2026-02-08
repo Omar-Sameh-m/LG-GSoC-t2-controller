@@ -44,7 +44,38 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(title: const Text("LG Controller - Cairo")),
       body: BlocListener<LgCubit, LgState>(
         listener: (context, state) {
-          if (state is LgActionSuccess) {
+          if (state is LgConnecting) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: const [
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(child: Text('Connecting to LG...')),
+                  ],
+                ),
+                duration: const Duration(seconds: 10),
+              ),
+            );
+          } else if (state is LgConnected) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Connected to LG'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          } else if (state is LgError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          } else if (state is LgActionSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -58,42 +89,47 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  _buildBtn(
-                    "Send LG Logo",
-                    Icons.image,
-                    Colors.blue,
-                    () => cubit.sendLogos(),
-                  ),
-                  _buildBtn(
-                    "Send Pyramid (Cairo)",
-                    Icons.account_balance,
-                    Colors.orange,
-                    () => cubit.sendPyramid(),
-                  ),
-                  _buildBtn(
-                    "Fly to Home (Cairo)",
-                    Icons.flight,
-                    Colors.indigo,
-                    () => cubit.flyToCairo(),
-                  ),
-                  _buildBtn(
-                    "Clean Logos",
-                    Icons.cleaning_services,
-                    Colors.grey,
-                    () => cubit.cleanLogos(),
-                  ),
-                  _buildBtn(
-                    "Clean KMLs",
-                    Icons.delete,
-                    Colors.red,
-                    () => cubit.cleanKml(),
-                  ),
-                ],
+              BlocBuilder<LgCubit, LgState>(
+                builder: (context, state) {
+                  final connected = state is LgConnected;
+                  return Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      _buildBtn(
+                        "Send LG Logo",
+                        Icons.image,
+                        Colors.blue,
+                        connected ? () => cubit.sendLogos() : null,
+                      ),
+                      _buildBtn(
+                        "Send Pyramid (Cairo)",
+                        Icons.account_balance,
+                        Colors.orange,
+                        connected ? () => cubit.sendPyramid() : null,
+                      ),
+                      _buildBtn(
+                        "Fly to Home (Cairo)",
+                        Icons.flight,
+                        Colors.indigo,
+                        connected ? () => cubit.flyToCairo() : null,
+                      ),
+                      _buildBtn(
+                        "Clean Logos",
+                        Icons.cleaning_services,
+                        Colors.grey,
+                        connected ? () => cubit.cleanLogos() : null,
+                      ),
+                      _buildBtn(
+                        "Clean KMLs",
+                        Icons.delete,
+                        Colors.red,
+                        connected ? () => cubit.cleanKml() : null,
+                      ),
+                    ],
+                  );
+                },
               ),
 
               const SizedBox(height: 20),
@@ -205,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
     String text,
     IconData icon,
     Color color,
-    VoidCallback onTap,
+    VoidCallback? onTap,
   ) {
     return SizedBox(
       width: 180,

@@ -6,15 +6,20 @@ import 'package:lg_flutter_app/logic/cubit/lg_state.dart';
 
 class LgCubit extends Cubit<LgState> {
   final SshService _sshService;
+  bool _isConnected = false;
 
   LgCubit(this._sshService) : super(LgInitial());
+
+  bool get isConnected => _isConnected;
 
   Future<void> connectToLg() async {
     emit(LgConnecting());
     bool success = await _sshService.connect();
     if (success) {
+      _isConnected = true;
       emit(LgConnected());
     } else {
+      _isConnected = false;
       emit(LgError(message: 'Failed to connect to LG'));
     }
   }
@@ -26,6 +31,7 @@ class LgCubit extends Cubit<LgState> {
     );
     await _sshService.sendKML(logoKml, "logo.kml");
     emit(LgActionSuccess(message: "Logo Sent!"));
+    if (_isConnected) emit(LgConnected());
   }
 
   Future<void> sendPyramid() async {
@@ -39,6 +45,7 @@ class LgCubit extends Cubit<LgState> {
       0,
     );
     emit(LgActionSuccess(message: "Pyramid Sent & View Updated!"));
+    if (_isConnected) emit(LgConnected());
   }
 
   Future<void> flyToCairo() async {
@@ -50,27 +57,32 @@ class LgCubit extends Cubit<LgState> {
       0,
     );
     emit(LgActionSuccess(message: "Flying to Cairo..."));
+    if (_isConnected) emit(LgConnected());
   }
 
   Future<void> cleanKml() async {
     await _sshService.cleanSlaves();
     emit(LgActionSuccess(message: "KMLs Cleaned"));
+    if (_isConnected) emit(LgConnected());
   }
 
   Future<void> cleanLogos() async {
     await _sshService.sendKML("", "logo.kml");
     emit(LgActionSuccess(message: "Logos Cleaned"));
+    if (_isConnected) emit(LgConnected());
   }
 
   Future<void> sendLogoFromUrl(String url) async {
     String logoKml = KMLMaker.screenOverlayImage(url, 0.5);
     await _sshService.sendKML(logoKml, "logo.kml");
     emit(LgActionSuccess(message: "Custom Logo Sent!"));
+    if (_isConnected) emit(LgConnected());
   }
 
   Future<void> sendCustomKml(String kmlText, String filename) async {
     await _sshService.sendKML(kmlText, filename);
     emit(LgActionSuccess(message: "Custom KML Sent as $filename"));
+    if (_isConnected) emit(LgConnected());
   }
 
   Future<void> flyToCoordinates(
@@ -82,5 +94,6 @@ class LgCubit extends Cubit<LgState> {
   ) async {
     await _sshService.flyTo(lat, lon, altitude, heading, tilt);
     emit(LgActionSuccess(message: "Flying to ($lat, $lon)"));
+    if (_isConnected) emit(LgConnected());
   }
 }
