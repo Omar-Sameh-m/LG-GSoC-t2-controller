@@ -5,7 +5,7 @@ class AppConstants {
   static const String defaultPass = "lg";
   static const int screens = 3;
 
-  // Cairo Coordinates
-  static const double cairoLat = 30.0444;
-  static const double cairoLong = 31.2357;
+  // Giza Pyramids Coordinates
+  static const double cairoLat = 29.9753;
+  static const double cairoLong = 31.1394;
 }

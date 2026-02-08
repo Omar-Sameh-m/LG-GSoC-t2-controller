@@ -74,11 +74,11 @@ class KMLMaker {
       <outerBoundaryIs>
         <LinearRing>
           <coordinates>
-            31.233,30.042,0
-            31.239,30.042,0
-            31.239,30.048,0
-            31.233,30.048,0
-            31.233,30.042,0
+            31.137,29.974,0
+            31.143,29.974,0
+            31.143,29.980,0
+            31.137,29.980,0
+            31.137,29.974,0
           </coordinates>
         </LinearRing>
       </outerBoundaryIs>
@@ -95,10 +95,10 @@ class KMLMaker {
       <outerBoundaryIs>
         <LinearRing>
           <coordinates>
-            31.233,30.042,0
-            31.239,30.042,0
-            31.236,30.045,300
-            31.233,30.042,0
+            31.137,29.974,0
+            31.143,29.974,0
+            31.140,29.977,300
+            31.137,29.974,0
           </coordinates>
         </LinearRing>
       </outerBoundaryIs>
@@ -115,10 +115,10 @@ class KMLMaker {
       <outerBoundaryIs>
         <LinearRing>
           <coordinates>
-            31.239,30.042,0
-            31.239,30.048,0
-            31.236,30.045,300
-            31.239,30.042,0
+            31.143,29.974,0
+            31.143,29.980,0
+            31.140,29.977,300
+            31.143,29.974,0
           </coordinates>
         </LinearRing>
       </outerBoundaryIs>
@@ -135,10 +135,10 @@ class KMLMaker {
       <outerBoundaryIs>
         <LinearRing>
           <coordinates>
-            31.239,30.048,0
-            31.233,30.048,0
-            31.236,30.045,300
-            31.239,30.048,0
+            31.143,29.980,0
+            31.137,29.980,0
+            31.140,29.977,300
+            31.143,29.980,0
           </coordinates>
         </LinearRing>
       </outerBoundaryIs>
@@ -155,10 +155,10 @@ class KMLMaker {
       <outerBoundaryIs>
         <LinearRing>
           <coordinates>
-            31.233,30.048,0
-            31.233,30.042,0
-            31.236,30.045,300
-            31.233,30.048,0
+            31.137,29.980,0
+            31.137,29.974,0
+            31.140,29.977,300
+            31.137,29.980,0
           </coordinates>
         </LinearRing>
       </outerBoundaryIs>
