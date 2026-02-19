@@ -1,27 +1,64 @@
+/// Utility class for generating KML (Keyhole Markup Language) content.
+///
+/// KML is an XML-based format used by Google Earth to display geographic
+/// data, 3D models, overlays, and camera views. This class provides
+/// factory methods to create KML strings that control the LG display.
+///
+/// The LG (Liquid Galaxy) system uses KML to:
+/// - Display image overlays (logos) on specific screens
+/// - Position the camera (fly-to commands)
+/// - Render 3D geometric shapes (pyramids, buildings)
 class KMLMaker {
+  /// Creates a KML ScreenOverlay for displaying an image on screen.
+  ///
+  /// ScreenOverlays are 2D images that float on top of the 3D globe view.
+  /// They're used for logos, legends, and UI elements. This method creates
+  /// a KML that positions the image in the lower-left area of the screen.
+  ///
+  /// [imageUrl] - URL of the image to display (must be accessible from LG)
+  /// [factor] - Size scaling factor (currently unused, kept for API compatibility)
+  ///
+  /// Returns a complete KML Document with a ScreenOverlay element.
+  ///
+  /// The overlay is positioned at:
+  /// - screenXY: 2% from left, 72.5% from bottom (lower-left area)
+  /// - size: 554x500 pixels (fixed size for LG logo)
   static String screenOverlayImage(String imageUrl, double factor) {
     return '''<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
-    <Document>
-        <name>LG Logo Overlay</name>
-        <Folder>
-            <name>Logo</name>
-            <ScreenOverlay>
-                <name>Logo</name>
-                <description>LG Master Logo</description>
-                <Icon>
-                    <href>$imageUrl</href>
-                </Icon>
-                <overlayXY x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
-                <screenXY x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
-                <rotationXY x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
-                <size x="800" y="600" xunits="pixels" yunits="pixels"/>
-            </ScreenOverlay>
-        </Folder>
-    </Document>
+<Document>
+    <name>Logo</name>
+    <ScreenOverlay>
+        <name>Logo</name>
+        <visibility>1</visibility>
+        <Icon>
+          <href>$imageUrl</href>
+        </Icon>
+        <overlayXY x="0" y="0" xunits="fraction" yunits="fraction"/>
+        <screenXY x="0.02" y="0.725" xunits="fraction" yunits="fraction"/>
+        <rotationXY x="0" y="0" xunits="fraction" yunits="fraction"/>
+        <size x="554" y="500" xunits="pixels" yunits="pixels"/>
+    </ScreenOverlay>
+</Document>
 </kml>''';
   }
 
+  /// Generates a KML LookAt element for camera positioning.
+  ///
+  /// LookAt defines the camera view in Google Earth with:
+  /// - longitude/latitude: Where to look (center point)
+  /// - range: Distance from ground in meters (zoom level)
+  /// - tilt: Camera angle (0 = straight down, 90 = horizon)
+  /// - heading: Compass direction (0 = north, 90 = east)
+  ///
+  /// This is used in fly-to commands to navigate the view.
+  /// The gx:altitudeMode is set to relativeToGround for consistent behavior.
+  ///
+  /// [lat] - Target latitude
+  /// [lng] - Target longitude
+  /// [zoom] - Camera range in meters (smaller = closer)
+  /// [tilt] - Tilt angle in degrees
+  /// [heading] - Heading angle in degrees
   static String lookAtLinear(
     double lat,
     double lng,
@@ -32,8 +69,23 @@ class KMLMaker {
     return '<LookAt><longitude>$lng</longitude><latitude>$lat</latitude><range>$zoom</range><tilt>$tilt</tilt><heading>$heading</heading><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>';
   }
 
+  /// Generates a 3D pyramid KML positioned above Cairo, Egypt.
+  ///
+  /// This creates a colorful 3D pyramid using KML Polygons with:
+  /// - A square base at ground level (altitude = 0)
+  /// - Four triangular faces meeting at a peak (altitude = 300m)
+  /// - Different colors for each face for visual distinction
+  ///
+  /// The pyramid is positioned near the Giza Pyramids coordinates
+  /// (defined in AppConstants) as a demonstration of 3D KML capabilities.
+  ///
+  /// Each face is a separate Placemark with:
+  /// - Polygon geometry with 4 coordinates (3 corners + close the ring)
+  /// - altitudeMode: relativeToGround (height above terrain)
+  /// - extrude: 0 (no connection to ground)
+  ///
+  /// Returns a complete KML Document with the 3D pyramid.
   static String generatePyramid() {
-    // 3D pyramid with vibrant colors above cairo
     return '''<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <Document>
