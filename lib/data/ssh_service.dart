@@ -17,6 +17,10 @@ class SshService {
   /// SSH client instance - null when not connected
   SSHClient? _client;
 
+  /// Master machine IP address - stored during connection
+  /// Used to build correct URLs for slave machines
+  String _masterIp = '192.168.1.10';
+
   /// Sudo password for executing privileged commands on LG.
   ///
   /// Required for:
@@ -45,6 +49,9 @@ class SshService {
     final pass = prefs.getString('password') ?? 'lg';
 
     try {
+      // Store the master IP for later use in URLs
+      _masterIp = ip;
+
       // Establish TCP socket connection to SSH port
       final socket = await SSHSocket.connect(
         ip,
@@ -68,19 +75,22 @@ class SshService {
   }
 
   /// Sends a logo image to the left screen (slave 3) of the LG rig.
-  ///
+  //
   /// This method:
   /// 1. Creates /var/www/html/kml/ directory if it doesn't exist
   /// 2. Writes a KML file with a ScreenOverlay pointing to the logo image
   /// 3. Updates kmls_3.txt to tell lg3 to display this KML
-  /// 4. Restarts Apache to clear any cached content
+  /// 4. Sends refresh command to update Google Earth immediately
   ///
   /// The logo appears only on the leftmost screen (lg3) in a 3-screen setup.
   ///
   /// [kmlContent] - The KML string containing the screen overlay
   /// [logoUrl] - Optional custom logo URL (uses default LG logo if null)
   Future<bool> sendLogo(String kmlContent, {String? logoUrl}) async {
-    if (_client == null) return false;
+    if (_client == null) {
+      print('ERROR: SSH client not connected');
+      return false;
+    }
 
     try {
       // Use provided logo URL or fall back to default LG logo
@@ -94,8 +104,10 @@ class SshService {
         logoImageUrl,
       );
 
+      print('Sending logo to lg3 (3rd machine)...');
+      print('Using master IP: $_masterIp');
+
       // Use HERE document to write multi-line KML to file
-      // This avoids complex quote escaping in shell commands
       final writeCmd =
           '''
 cat > /var/www/html/kml/slave_3.kml << 'EOF'
@@ -111,17 +123,16 @@ EOF''';
       );
       await _client!.run(writeCmd);
 
-      // Tell slave 3 (left screen) to load this KML
-      // 10.42.42.1 is the internal IP of the master machine
-      await _client!.run(
-        "echo 'http://10.42.42.1:81/kml/slave_3.kml' > /var/www/html/kmls_3.txt",
-      );
+      // Tell slave 3 (left screen) to load this KML using dynamic IP
+      final kmlFileUrl = 'http://$_masterIp:81/kml/slave_3.kml';
+      print('Setting kmls_3.txt to: $kmlFileUrl');
 
-      // Restart Apache to force cache clear and apply changes
-      await _client!.run(
-        "echo '$sudoPassword' | sudo -S service apache2 restart",
-      );
+      await _client!.run("echo '$kmlFileUrl' > /var/www/html/kmls_3.txt");
 
+      // Send refresh command to update Google Earth immediately (no Apache restart needed)
+      await _client!.run("echo 'refresh=1' > /tmp/query.txt");
+
+      print('Logo sent successfully to lg3!');
       return true;
     } catch (e) {
       print('Error sending logo: $e');
@@ -133,27 +144,31 @@ EOF''';
   ///
   /// This method:
   /// 1. Deletes the slave_3.kml file
-  /// 2. Removes the entry from kmls_3.txt using sed
-  /// 3. Restarts Apache to apply changes
+  /// 2. Clears kmls_3.txt completely
+  /// 3. Sends refresh command to update Google Earth immediately
   ///
   /// Other KMLs (like the pyramid) are preserved - only the logo is removed.
   Future<bool> cleanLogo() async {
-    if (_client == null) return false;
+    if (_client == null) {
+      print('ERROR: SSH client not connected');
+      return false;
+    }
 
     try {
+      print('Cleaning logo from lg3...');
+
       // Remove the logo KML file
       await _client!.run(
         "echo '$sudoPassword' | sudo -S rm -f /var/www/html/kml/slave_3.kml",
       );
 
-      // Remove logo entry from kmls_3.txt (sed deletes lines matching pattern)
-      await _client!.run("sed -i '/slave_3.kml/d' /var/www/html/kmls_3.txt");
+      // Clear kmls_3.txt completely (more reliable than sed)
+      await _client!.run("echo '' > /var/www/html/kmls_3.txt");
 
-      // Restart Apache to clear cache
-      await _client!.run(
-        "echo '$sudoPassword' | sudo -S service apache2 restart",
-      );
+      // Send refresh command to update Google Earth immediately
+      await _client!.run("echo 'refresh=1' > /tmp/query.txt");
 
+      print('Logo cleaned successfully from lg3!');
       return true;
     } catch (e) {
       print('Error cleaning logo: $e');
