@@ -150,8 +150,12 @@ class LgCubit extends Cubit<LgState> {
   ///
   /// This allows cleaning just the logo while keeping other content.
   Future<void> cleanLogos() async {
-    await _sshService.cleanLogo();
-    emit(LgActionSuccess(message: "Logo Cleaned from LEFT Screen (lg3)"));
+    final success = await _sshService.cleanLogo();
+    if (success) {
+      emit(LgActionSuccess(message: "Logo Cleaned from LEFT Screen (lg3)"));
+    } else {
+      emit(LgError(message: "Failed to clean logo from lg3"));
+    }
     _emitConnected();
   }
 
