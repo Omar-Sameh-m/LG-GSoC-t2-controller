@@ -93,14 +93,15 @@ class LgCubit extends Cubit<LgState> {
   ///
   /// This action:
   /// 1. Generates a colorful 3D pyramid KML near Giza
-  /// 2. Sends the KML to the LG master
+  /// 2. Sends the KML to ALL 3 LG machines (lg1, lg2, lg3) for synchronized display
   /// 3. Flies the camera to Cairo with a tilted view (45° tilt, 1000m range)
   ///
   /// The pyramid demonstrates 3D KML capabilities with 4 colored faces
   /// meeting at a 300m high peak above the ground.
+  /// Appears on all 3 screens simultaneously.
   Future<void> sendPyramid() async {
     final pyramidKml = KMLMaker.generatePyramid();
-    await _sshService.sendKML(pyramidKml, "pyramid.kml");
+    await _sshService.sendKMLToAllMachines(pyramidKml, "pyramid.kml");
     await _sshService.flyTo(
       AppConstants.cairoLat,
       AppConstants.cairoLong,
@@ -108,7 +109,9 @@ class LgCubit extends Cubit<LgState> {
       45, // 45° tilt = angled view
       0, // 0° heading = facing north
     );
-    emit(LgActionSuccess(message: "Pyramid Sent & View Updated!"));
+    emit(
+      LgActionSuccess(message: "Pyramid Sent to ALL Screens & View Updated!"),
+    );
     _emitConnected();
   }
 

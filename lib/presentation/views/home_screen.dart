@@ -84,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final cubit = context.read<LgCubit>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text("LG Controller - Cairo")),
+      appBar: AppBar(title: const Text("LG Controller")),
       body: BlocListener<LgCubit, LgState>(
         // Listen to state changes and show appropriate UI feedback
         listener: (context, state) {

@@ -210,6 +210,44 @@ EOF''';
     }
   }
 
+  /// Sends a KML file to ALL LG machines (lg1, lg2, lg3) for synchronized display.
+  ///
+  /// This method ensures the KML appears on all 3 screens simultaneously.
+  /// It writes the KML once and updates all three kmls.txt files.
+  ///
+  /// [kmlContent] - The KML XML string to send
+  /// [fileName] - Name for the KML file (e.g., "pyramid.kml")
+  Future<void> sendKMLToAllMachines(String kmlContent, String fileName) async {
+    if (_client == null) return;
+
+    try {
+      print('Sending KML to all 3 machines: $fileName');
+
+      // Escape single quotes in KML to prevent shell injection issues
+      final safeKml = kmlContent.replaceAll("'", "'\\''");
+
+      // Write KML content to file once
+      await _client!.run("echo '$safeKml' > /var/www/html/$fileName");
+
+      // Update all three machine index files with the same KML URL
+      final kmlUrl = 'http://$_masterIp:81/$fileName';
+
+      // Machine 1 (master)
+      await _client!.run("echo '$kmlUrl' > /var/www/html/kmls.txt");
+      // Machine 2 (slave)
+      await _client!.run("echo '$kmlUrl' > /var/www/html/kmls_2.txt");
+      // Machine 3 (slave)
+      await _client!.run("echo '$kmlUrl' > /var/www/html/kmls_3.txt");
+
+      // Send refresh command to update all Google Earth instances
+      await _client!.run("echo 'refresh=1' > /tmp/query.txt");
+
+      print('KML sent to all machines successfully!');
+    } catch (e) {
+      print('Error sending KML to all machines: $e');
+    }
+  }
+
   /// Sends a fly-to command to navigate Google Earth to specific coordinates.
   ///
   /// The fly-to command is written to /tmp/query.txt which Google Earth
