@@ -255,13 +255,4 @@ EOF''';
       print('Clean failed: $e');
     }
   }
-
-  /// Closes the SSH connection.
-  ///
-  /// Should be called when the app is closed or when disconnecting
-  /// from the LG system to free network resources.
-  void disconnect() {
-    _client?.close();
-    print('Disconnected from LG');
-  }
 }
